@@ -110,6 +110,127 @@
     Développé avec ❤️ par <span class="text-purple-400 font-semibold">Browkse</span>
   </footer>
 
-  <!-- Le script JS reste identique -->
+  <script>
+    let isAdmin = false;
+    const callList = document.getElementById("callList");
+    const adminStatus = document.getElementById("adminStatus");
+    const notif = document.getElementById("notif");
+    const callCounter = document.getElementById("callCounter");
+    const loginForm = document.getElementById("loginForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const evtSource = new EventSource("/events");
+    evtSource.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      isAdmin = data.admin ?? false;
+      renderCalls(data.calls);
+    };
+
+    function showNotif(msg) {
+      notif.textContent = msg;
+      notif.classList.remove("hidden");
+      setTimeout(() => notif.classList.add("hidden"), 3000);
+    }
+
+    function renderCalls(calls) {
+      loginForm.classList.toggle("hidden", isAdmin);
+      logoutBtn.classList.toggle("hidden", !isAdmin);
+      resetBtn.classList.toggle("hidden", !isAdmin);
+
+      if (isAdmin) {
+        adminStatus.textContent = "✅ Admin connecté";
+        adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-green-600 text-white z-50";
+      } else {
+        adminStatus.textContent = "🔒 Non connecté";
+        adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50";
+      }
+
+      callCounter.textContent = `📋 ${calls.length} call${calls.length === 1 ? '' : 's'} en attente`;
+
+      callList.innerHTML = "";
+      calls.forEach((call, index) => {
+        const li = document.createElement("li");
+        li.className = "fade-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
+        li.innerHTML = `
+          <div class="text-left">
+            <p class="text-xl font-semibold">🎰 ${call.slot}</p>
+            <p class="text-sm text-gray-100">👤 ${call.user}</p>
+          </div>
+          ${isAdmin ? `
+            <button onclick="deleteCall(${index})"
+              class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-bold transition">
+              Supprimer
+            </button>` : ""}
+        `;
+        callList.appendChild(li);
+      });
+    }
+
+    async function login() {
+      const password = document.getElementById("passwordInput").value;
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password })
+      });
+
+      if (!res.ok) {
+        alert("❌ Mot de passe incorrect");
+      } else {
+        isAdmin = true;
+        const res2 = await fetch('/api/calls');
+        const data = await res2.json();
+        renderCalls(data.calls);
+      }
+    }
+
+    async function logout() {
+      await fetch("/api/logout", { method: "POST" });
+      isAdmin = false;
+      const res2 = await fetch('/api/calls');
+      const data = await res2.json();
+      renderCalls(data.calls);
+    }
+
+    async function deleteCall(index) {
+      const li = document.querySelectorAll("#callList li")[index];
+      li.classList.add("fade-out");
+      setTimeout(async () => {
+        await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index })
+        });
+      }, 400);
+    }
+
+    async function resetCalls() {
+      const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
+      if (!confirmReset) return;
+      await fetch("/api/reset", { method: "POST" });
+    }
+
+    async function submitViewerCall(event) {
+      event.preventDefault();
+      const slot = document.getElementById("slotInput").value.trim();
+      const user = document.getElementById("userInput").value.trim();
+      if (!slot || !user) return alert("Remplis les deux champs !");
+
+      const res = await fetch("/api/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot, user })
+      });
+
+      if (res.ok) {
+        document.getElementById("slotInput").value = "";
+        document.getElementById("userInput").value = "";
+        showNotif("Call ajouté avec succès ✅");
+      } else {
+        alert("Erreur lors de l'envoi du call !");
+      }
+    }
+  </script>
 </body>
 </html>
