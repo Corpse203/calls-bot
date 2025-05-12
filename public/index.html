@@ -22,14 +22,19 @@
 </head>
 <body class="flex flex-col justify-between min-h-screen bg-gray-950 text-white p-6 font-sans">
 
+  <!-- ✅ Badge admin status -->
+  <div id="adminStatus" class="fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50">
+    🔒 Non connecté
+  </div>
+
   <div class="max-w-2xl mx-auto text-center">
     <h1 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400">
-      🎰 Liste des Calls
+      🎰 Liste des Calls - DLive
     </h1>
 
     <!-- 🎯 Formulaire PUBLIC -->
     <div id="viewerForm" class="mb-8">
-      <h2 class="text-xl font-bold mb-2">📩 Propose ta slot</h2>
+      <h2 class="text-xl font-bold mb-2">📩 Proposer une machine</h2>
       <form onsubmit="submitViewerCall(event)" class="flex flex-col md:flex-row gap-2 justify-center">
         <input id="slotInput" type="text" placeholder="Nom de la slot"
                class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring focus:ring-blue-500" required />
@@ -66,6 +71,7 @@
   <script>
     let isAdmin = false;
     const callList = document.getElementById("callList");
+    const adminStatus = document.getElementById("adminStatus");
 
     const evtSource = new EventSource("/events");
     evtSource.onmessage = function (event) {
@@ -78,6 +84,16 @@
       document.getElementById("logoutBtn").classList.toggle("hidden", !isAdmin);
       document.getElementById("resetBtn").classList.toggle("hidden", !isAdmin);
 
+      // 🔄 Affiche le statut admin
+      if (isAdmin) {
+        adminStatus.textContent = "✅ Admin connecté";
+        adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-green-600 text-white z-50";
+      } else {
+        adminStatus.textContent = "🔒 Non connecté";
+        adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50";
+      }
+
+      // 🔁 Affiche les calls
       callList.innerHTML = "";
       calls.forEach((call, index) => {
         const li = document.createElement("li");
