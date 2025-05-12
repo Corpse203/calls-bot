@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Overlay Calls</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      background: transparent;
+      margin: 0;
+      padding: 0;
+    }
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="text-white font-sans text-sm leading-tight px-2 py-1">
+
+  <ul id="callList" class="space-y-1"></ul>
+
+  <script>
+    const callList = document.getElementById("callList");
+
+    const evtSource = new EventSource("/events");
+    evtSource.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      renderCalls(data.calls);
+    };
+
+    function renderCalls(calls) {
+      callList.innerHTML = "";
+      calls.forEach((call, index) => {
+        const li = document.createElement("li");
+        li.className = "fade-in bg-white/5 backdrop-blur-sm px-3 py-1 rounded text-left shadow";
+        li.innerHTML = `
+          <div class="flex flex-col">
+            <span class="font-bold text-white">🎰 ${call.slot}</span>
+            <span class="text-gray-300 text-xs">👤 ${call.user}</span>
+          </div>
+        `;
+        callList.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
