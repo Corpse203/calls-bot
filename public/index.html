@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Calls Viewer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
     .fade-out {
       opacity: 0;
       transform: translateX(40px);
@@ -18,15 +20,16 @@
     }
   </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen p-6 font-sans">
+<body class="flex flex-col justify-between min-h-screen bg-gray-950 text-white p-6 font-sans">
+
   <div class="max-w-2xl mx-auto text-center">
     <h1 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400">
-      🎰 Liste des Calls 
+      🎰 Liste des Calls - DLive
     </h1>
 
     <!-- 🎯 Formulaire PUBLIC -->
     <div id="viewerForm" class="mb-8">
-      <h2 class="text-xl font-bold mb-2">📩 Propose ta slot</h2>
+      <h2 class="text-xl font-bold mb-2">📩 Proposer une machine</h2>
       <form onsubmit="submitViewerCall(event)" class="flex flex-col md:flex-row gap-2 justify-center">
         <input id="slotInput" type="text" placeholder="Nom de la slot"
                class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring focus:ring-blue-500" required />
@@ -55,16 +58,18 @@
     <ul id="callList" class="space-y-4 mt-4"></ul>
   </div>
 
+  <!-- 👣 Footer personnalisé -->
+  <footer class="mt-16 text-center text-sm text-gray-400 hover:text-white transition-opacity opacity-70">
+    Développé avec ❤️ par <span class="text-purple-400 font-semibold">Browkse</span>
+  </footer>
+
   <script>
     let isAdmin = false;
-
     const callList = document.getElementById("callList");
 
     const evtSource = new EventSource("/events");
     evtSource.onmessage = function (event) {
       const data = JSON.parse(event.data);
-      isAdmin = data.admin ?? isAdmin;
-
       renderCalls(data.calls);
     };
 
@@ -80,7 +85,7 @@
 
         li.innerHTML = `
           <div class="text-left">
-            <p class="text-xl font-semibold">🎲 ${call.slot}</p>
+            <p class="text-xl font-semibold">🎰 ${call.slot}</p>
             <p class="text-sm text-gray-100">👤 ${call.user}</p>
           </div>
           ${isAdmin ? `
