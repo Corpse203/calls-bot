@@ -18,9 +18,18 @@
       from { opacity: 0; transform: translateY(6px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+    /* Scroll smooth optionnel */
+    #callList {
+      overflow: hidden;
+      max-height: 160px;
+    }
   </style>
 </head>
 <body class="text-white font-sans text-sm leading-tight px-2 py-1">
+
+  <div class="text-center mb-2 text-xs text-gray-300 font-semibold tracking-wide uppercase">
+    📋 Next Calls
+  </div>
 
   <ul id="callList" class="space-y-1"></ul>
 
@@ -35,7 +44,8 @@
 
     function renderCalls(calls) {
       callList.innerHTML = "";
-      calls.forEach((call, index) => {
+      const lastCalls = calls.slice(-3); // ✂️ limite aux 3 derniers
+      lastCalls.forEach((call) => {
         const li = document.createElement("li");
         li.className = "fade-in bg-white/5 backdrop-blur-sm px-3 py-1 rounded text-left shadow";
         li.innerHTML = `
