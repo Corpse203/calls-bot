@@ -1,12 +1,9 @@
 const express = require("express");
-const WebSocket = require("ws");
 const cookieParser = require("cookie-parser");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const STREAMER_USERNAME = "TonNomDLive"; // modifie ici si besoin
-const MOD_PASSWORD = "supermod123";      // mot de passe admin
-
+const MOD_PASSWORD = "supermod123"; // change si besoin
 let calls = [];
 let clients = [];
 
@@ -18,7 +15,7 @@ function isAdmin(req) {
   return req.cookies.admin === "true";
 }
 
-// --- EVENTS SSE ---
+// SSE - EventSource
 app.get("/events", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -27,7 +24,6 @@ app.get("/events", (req, res) => {
 
   const client = { res };
   clients.push(client);
-
   res.write(`data: ${JSON.stringify({ calls, admin: isAdmin(req) })}\n\n`);
 
   req.on("close", () => {
@@ -40,7 +36,7 @@ function broadcastCalls() {
   clients.forEach(client => client.res.write(payload));
 }
 
-// --- API ---
+// API routes
 app.get("/api/calls", (req, res) => {
   res.json({ calls, admin: isAdmin(req) });
 });
@@ -84,5 +80,5 @@ app.post("/api/logout", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Serveur lancé sur http://localhost:${PORT}`);
+  console.log(`✅ Serveur en ligne sur http://localhost:${PORT}`);
 });
