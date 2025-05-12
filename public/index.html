@@ -6,8 +6,11 @@
   <title>Calls Viewer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .fade-in {
-      animation: fadeIn 0.5s ease-out;
+    .fade-in { animation: fadeIn 0.5s ease-out; }
+    .fade-out {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
     }
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
@@ -16,11 +19,9 @@
   </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen p-6 font-sans">
-
   <div class="max-w-2xl mx-auto text-center">
-
     <h1 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400">
-      🎰 Liste des Calls
+      🎰 Liste des Calls 
     </h1>
 
     <!-- 🎯 Formulaire PUBLIC -->
@@ -46,31 +47,34 @@
     </div>
 
     <button id="logoutBtn" onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded mb-4 hidden transition">Se déconnecter</button>
-
     <button id="resetBtn" onclick="resetCalls()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded mb-6 text-black font-semibold transition hidden">
       🧽 Vider la liste
     </button>
 
     <!-- 📋 Liste des calls -->
     <ul id="callList" class="space-y-4 mt-4"></ul>
-
   </div>
 
   <script>
     let isAdmin = false;
 
-    async function fetchCalls() {
-      const res = await fetch("/api/calls");
-      const data = await res.json();
-      isAdmin = data.admin;
+    const callList = document.getElementById("callList");
 
+    const evtSource = new EventSource("/events");
+    evtSource.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      isAdmin = data.admin ?? isAdmin;
+
+      renderCalls(data.calls);
+    };
+
+    function renderCalls(calls) {
       document.getElementById("loginForm").classList.toggle("hidden", isAdmin);
       document.getElementById("logoutBtn").classList.toggle("hidden", !isAdmin);
       document.getElementById("resetBtn").classList.toggle("hidden", !isAdmin);
 
-      const callList = document.getElementById("callList");
       callList.innerHTML = "";
-      data.calls.forEach((call, index) => {
+      calls.forEach((call, index) => {
         const li = document.createElement("li");
         li.className = "fade-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
 
@@ -83,8 +87,7 @@
             <button onclick="deleteCall(${index})"
               class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-bold transition">
               Supprimer
-            </button>
-          ` : ""}
+            </button>` : ""}
         `;
         callList.appendChild(li);
       });
@@ -97,31 +100,29 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      if (res.ok) fetchCalls();
-      else alert("❌ Mot de passe incorrect");
+      if (!res.ok) alert("❌ Mot de passe incorrect");
     }
 
     async function logout() {
       await fetch("/api/logout", { method: "POST" });
-      fetchCalls();
     }
 
     async function deleteCall(index) {
-      await fetch("/api/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ index }),
-      });
-      fetchCalls();
+      const li = document.querySelectorAll("#callList li")[index];
+      li.classList.add("fade-out");
+      setTimeout(async () => {
+        await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index }),
+        });
+      }, 400);
     }
 
     async function resetCalls() {
       const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
       if (!confirmReset) return;
-
-      const res = await fetch("/api/reset", { method: "POST" });
-      if (res.ok) fetchCalls();
-      else alert("❌ Erreur lors du reset");
+      await fetch("/api/reset", { method: "POST" });
     }
 
     async function submitViewerCall(event) {
@@ -129,7 +130,6 @@
 
       const slot = document.getElementById("slotInput").value.trim();
       const user = document.getElementById("userInput").value.trim();
-
       if (!slot || !user) return alert("Remplis les deux champs !");
 
       const res = await fetch("/api/call", {
@@ -141,14 +141,10 @@
       if (res.ok) {
         document.getElementById("slotInput").value = "";
         document.getElementById("userInput").value = "";
-        fetchCalls();
       } else {
         alert("Erreur lors de l'envoi du call !");
       }
     }
-
-    fetchCalls();
-    setInterval(fetchCalls, 5000);
   </script>
 </body>
 </html>
