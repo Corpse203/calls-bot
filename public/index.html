@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calls Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .fade-in {
+      animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen p-6 font-sans">
+
+  <div class="max-w-2xl mx-auto text-center">
+
+    <h1 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400">
+      🎰 Liste des Calls - DLive
+    </h1>
+
+    <!-- 🎯 Formulaire PUBLIC -->
+    <div id="viewerForm" class="mb-8">
+      <h2 class="text-xl font-bold mb-2">📩 Proposer une machine</h2>
+      <form onsubmit="submitViewerCall(event)" class="flex flex-col md:flex-row gap-2 justify-center">
+        <input id="slotInput" type="text" placeholder="Nom de la slot"
+               class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring focus:ring-blue-500" required />
+        <input id="userInput" type="text" placeholder="Ton pseudo"
+               class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring focus:ring-blue-500" required />
+        <button type="submit"
+                class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded font-semibold transition">
+          Envoyer
+        </button>
+      </form>
+    </div>
+
+    <!-- 🔐 Zone admin -->
+    <div id="loginForm" class="mb-6 hidden">
+      <input id="passwordInput" type="password" placeholder="Mot de passe admin"
+             class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"/>
+      <button onclick="login()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 ml-2 rounded transition">Connexion</button>
+    </div>
+
+    <button id="logoutBtn" onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded mb-4 hidden transition">Se déconnecter</button>
+
+    <button id="resetBtn" onclick="resetCalls()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded mb-6 text-black font-semibold transition hidden">
+      🧽 Vider la liste
+    </button>
+
+    <!-- 📋 Liste des calls -->
+    <ul id="callList" class="space-y-4 mt-4"></ul>
+
+  </div>
+
+  <script>
+    let isAdmin = false;
+
+    async function fetchCalls() {
+      const res = await fetch("/api/calls");
+      const data = await res.json();
+      isAdmin = data.admin;
+
+      document.getElementById("loginForm").classList.toggle("hidden", isAdmin);
+      document.getElementById("logoutBtn").classList.toggle("hidden", !isAdmin);
+      document.getElementById("resetBtn").classList.toggle("hidden", !isAdmin);
+
+      const callList = document.getElementById("callList");
+      callList.innerHTML = "";
+      data.calls.forEach((call, index) => {
+        const li = document.createElement("li");
+        li.className = "fade-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
+
+        li.innerHTML = `
+          <div class="text-left">
+            <p class="text-xl font-semibold">🎲 ${call.slot}</p>
+            <p class="text-sm text-gray-100">👤 ${call.user}</p>
+          </div>
+          ${isAdmin ? `
+            <button onclick="deleteCall(${index})"
+              class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-bold transition">
+              Supprimer
+            </button>
+          ` : ""}
+        `;
+        callList.appendChild(li);
+      });
+    }
+
+    async function login() {
+      const password = document.getElementById("passwordInput").value;
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) fetchCalls();
+      else alert("❌ Mot de passe incorrect");
+    }
+
+    async function logout() {
+      await fetch("/api/logout", { method: "POST" });
+      fetchCalls();
+    }
+
+    async function deleteCall(index) {
+      await fetch("/api/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ index }),
+      });
+      fetchCalls();
+    }
+
+    async function resetCalls() {
+      const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
+      if (!confirmReset) return;
+
+      const res = await fetch("/api/reset", { method: "POST" });
+      if (res.ok) fetchCalls();
+      else alert("❌ Erreur lors du reset");
+    }
+
+    async function submitViewerCall(event) {
+      event.preventDefault();
+
+      const slot = document.getElementById("slotInput").value.trim();
+      const user = document.getElementById("userInput").value.trim();
+
+      if (!slot || !user) return alert("Remplis les deux champs !");
+
+      const res = await fetch("/api/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot, user }),
+      });
+
+      if (res.ok) {
+        document.getElementById("slotInput").value = "";
+        document.getElementById("userInput").value = "";
+        fetchCalls();
+      } else {
+        alert("Erreur lors de l'envoi du call !");
+      }
+    }
+
+    fetchCalls();
+    setInterval(fetchCalls, 5000);
+  </script>
+</body>
+</html>

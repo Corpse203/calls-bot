@@ -1,0 +1,13 @@
+{
+  "name": "dlive-calls-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "express": "^4.21.2",
+    "ws": "^8.18.2"
+  }
+}
