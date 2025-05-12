@@ -84,7 +84,6 @@
       document.getElementById("logoutBtn").classList.toggle("hidden", !isAdmin);
       document.getElementById("resetBtn").classList.toggle("hidden", !isAdmin);
 
-      // 🔄 Affiche le statut admin
       if (isAdmin) {
         adminStatus.textContent = "✅ Admin connecté";
         adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-green-600 text-white z-50";
@@ -93,12 +92,10 @@
         adminStatus.className = "fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50";
       }
 
-      // 🔁 Affiche les calls
       callList.innerHTML = "";
       calls.forEach((call, index) => {
         const li = document.createElement("li");
         li.className = "fade-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
-
         li.innerHTML = `
           <div class="text-left">
             <p class="text-xl font-semibold">🎰 ${call.slot}</p>
@@ -121,11 +118,23 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-      if (!res.ok) alert("❌ Mot de passe incorrect");
+
+      if (!res.ok) {
+        alert("❌ Mot de passe incorrect");
+      } else {
+        isAdmin = true; // ✅ Force l'état client
+        const res2 = await fetch('/api/calls');
+        const data = await res2.json();
+        renderCalls(data.calls);
+      }
     }
 
     async function logout() {
       await fetch("/api/logout", { method: "POST" });
+      isAdmin = false;
+      const res2 = await fetch('/api/calls');
+      const data = await res2.json();
+      renderCalls(data.calls);
     }
 
     async function deleteCall(index) {
@@ -148,17 +157,14 @@
 
     async function submitViewerCall(event) {
       event.preventDefault();
-
       const slot = document.getElementById("slotInput").value.trim();
       const user = document.getElementById("userInput").value.trim();
       if (!slot || !user) return alert("Remplis les deux champs !");
-
       const res = await fetch("/api/call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slot, user }),
       });
-
       if (res.ok) {
         document.getElementById("slotInput").value = "";
         document.getElementById("userInput").value = "";
