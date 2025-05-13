@@ -18,7 +18,7 @@
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-      @keyframes bounceIn {
+    @keyframes bounceIn {
       0% { transform: scale(0.95); opacity: 0; }
       50% { transform: scale(1.02); opacity: 0.9; }
       100% { transform: scale(1); opacity: 1; }
@@ -26,7 +26,7 @@
     .bounce-in {
       animation: bounceIn 0.4s ease-out;
     }
-      @keyframes slideFadeIn {
+    @keyframes slideFadeIn {
       0% { opacity: 0; transform: translateY(20px); }
       100% { opacity: 1; transform: translateY(0); }
     }
@@ -34,7 +34,6 @@
       animation: slideFadeIn 0.3s ease-out;
     }
   </style>
-  
 </head>
 <body class="flex flex-col justify-between min-h-screen bg-gradient-to-b from-gray-950 to-gray-900 text-white p-6 font-sans relative">
 
@@ -51,7 +50,7 @@
     🔒 Non connecté
   </div>
 
-  <div class="max-w-2xl mx-auto text-center">
+  <div class="max-w-2xl mx-auto text-center pb-24">
     <h1 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-indigo-400">
       🎰 Liste des Calls - Skrymi
     </h1>
@@ -80,13 +79,7 @@
       </form>
     </div>
 
-    <!-- 🔐 Zone admin -->
-    <div id="loginForm" class="mb-6 hidden">
-      <input id="passwordInput" type="password" placeholder="Mot de passe admin"
-             class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500"/>
-      <button onclick="login()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 ml-2 rounded transition">Connexion</button>
-    </div>
-
+    <!-- 🔘 Boutons admin -->
     <button id="logoutBtn" onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded mb-4 hidden transition">Se déconnecter</button>
     <button id="resetBtn" onclick="resetCalls()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded mb-6 text-black font-semibold transition hidden">
       🧽 Vider la liste
@@ -96,144 +89,150 @@
     <ul id="callList" class="space-y-4 mt-4"></ul>
   </div>
 
+  <!-- 🔐 Zone admin en pied de page -->
+  <div id="loginForm" class="hidden mb-10">
+    <div class="max-w-xl mx-auto flex justify-center gap-2">
+      <input id="passwordInput" type="password" placeholder="Mot de passe admin"
+             class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 w-60"/>
+      <button onclick="login()"
+              class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition font-semibold text-white">
+        Connexion
+      </button>
+    </div>
+  </div>
+
   <!-- 👣 Footer personnalisé -->
- <footer class="mt-16 text-center text-sm text-gray-400 hover:text-white transition-opacity opacity-70">
-  Développé avec ❤️ par <span class="text-purple-400 font-semibold">Browkse</span><br>
-  📺 Suis <span class="text-white font-semibold">Skrymi</span> sur :
-  <a href="https://dlive.tv/skrymi" class="text-blue-400 hover:underline mx-1" target="_blank">DLive</a> |
-  <a href="https://kick.com/skrymi" class="text-green-400 hover:underline mx-1" target="_blank">Kick</a> |
-  <a href="https://www.twitch.tv/skrymi" class="text-purple-400 hover:underline mx-1" target="_blank">Twitch</a><br>
-  <span class="text-gray-500 text-xs">© 2025 Skrymi. Tous droits réservés.</span>
-</footer>
+  <footer class="mt-16 text-center text-sm text-gray-400 hover:text-white transition-opacity opacity-70">
+    Développé avec ❤️ par <span class="text-purple-400 font-semibold">Browkse</span><br>
+    📺 Suis <span class="text-white font-semibold">Skrymi</span> sur :
+    <a href="https://dlive.tv/skrymi" class="text-blue-400 hover:underline mx-1" target="_blank">DLive</a> |
+    <a href="https://kick.com/skrymi" class="text-green-400 hover:underline mx-1" target="_blank">Kick</a> |
+    <a href="https://www.twitch.tv/skrymi" class="text-purple-400 hover:underline mx-1" target="_blank">Twitch</a><br>
+    <span class="text-gray-500 text-xs">© 2025 Skrymi. Tous droits réservés.</span>
+  </footer>
 
-<script>
-  let isAdmin = false;
-  const callList = document.getElementById("callList");
-  const adminStatus = document.getElementById("adminStatus");
-  const notif = document.getElementById("notif");
-  const callCounter = document.getElementById("callCounter");
-  const loginForm = document.getElementById("loginForm");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const resetBtn = document.getElementById("resetBtn");
+  <!-- 🧠 Script principal -->
+  <script>
+    let isAdmin = false;
+    const callList = document.getElementById("callList");
+    const adminStatus = document.getElementById("adminStatus");
+    const notif = document.getElementById("notif");
+    const callCounter = document.getElementById("callCounter");
+    const loginForm = document.getElementById("loginForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const resetBtn = document.getElementById("resetBtn");
 
-  // 🚨 Ne pas compter sur "admin" depuis le SSE : on le gère uniquement côté client
-  const evtSource = new EventSource("/events");
-  evtSource.onmessage = function (event) {
-    const data = JSON.parse(event.data);
-    renderCalls(data.calls);
-  };
+    const evtSource = new EventSource("/events");
+    evtSource.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+      renderCalls(data.calls);
+    };
 
-  function showNotif(msg) {
-    notif.textContent = msg;
-    notif.classList.remove("hidden");
-    notif.classList.add("toast-show");
-    setTimeout(() => {
-      notif.classList.add("hidden");
-      notif.classList.remove("toast-show");
-    }, 3000);
-  }
+    function showNotif(msg) {
+      notif.textContent = msg;
+      notif.classList.remove("hidden");
+      notif.classList.add("toast-show");
+      setTimeout(() => {
+        notif.classList.add("hidden");
+        notif.classList.remove("toast-show");
+      }, 3000);
+    }
 
-  function renderCalls(calls) {
-    loginForm.classList.toggle("hidden", isAdmin);
-    logoutBtn.classList.toggle("hidden", !isAdmin);
-    resetBtn.classList.toggle("hidden", !isAdmin);
+    function renderCalls(calls) {
+      loginForm.classList.toggle("hidden", isAdmin);
+      logoutBtn.classList.toggle("hidden", !isAdmin);
+      resetBtn.classList.toggle("hidden", !isAdmin);
 
-    adminStatus.textContent = isAdmin ? "✅ Admin connecté" : "🔒 Non connecté";
-    adminStatus.className = `fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow z-50 ${
-      isAdmin ? "bg-green-600" : "bg-red-600"
-    } text-white`;
+      adminStatus.textContent = isAdmin ? "✅ Admin connecté" : "🔒 Non connecté";
+      adminStatus.className = `fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow z-50 ${
+        isAdmin ? "bg-green-600" : "bg-red-600"
+      } text-white`;
 
-    callCounter.textContent = `📋 ${calls.length} call${calls.length === 1 ? '' : 's'} en attente`;
+      callCounter.textContent = `📋 ${calls.length} call${calls.length === 1 ? '' : 's'} en attente`;
 
-    callList.innerHTML = "";
-    calls.forEach((call, index) => {
-      const li = document.createElement("li");
-      li.className = "fade-in bounce-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
-      li.innerHTML = `
-        <div class="text-left">
-          <p class="text-xl font-semibold">🎰 ${call.slot}</p>
-          <p class="text-sm text-gray-100">👤 ${call.user}</p>
-        </div>
-        ${isAdmin ? `
-          <button onclick="deleteCall(${index})"
-            class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-bold transition">
-            Supprimer
-          </button>` : ""}
-      `;
-      callList.appendChild(li);
-    });
-  }
+      callList.innerHTML = "";
+      calls.forEach((call, index) => {
+        const li = document.createElement("li");
+        li.className = "fade-in bounce-in bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-500 p-4 rounded-2xl shadow-lg flex justify-between items-center";
+        li.innerHTML = `
+          <div class="text-left">
+            <p class="text-xl font-semibold">🎰 ${call.slot}</p>
+            <p class="text-sm text-gray-100">👤 ${call.user}</p>
+          </div>
+          ${isAdmin ? `
+            <button onclick="deleteCall(${index})"
+              class="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm font-bold transition">
+              Supprimer
+            </button>` : ""}
+        `;
+        callList.appendChild(li);
+      });
+    }
 
-async function login() {
-  const password = document.getElementById("passwordInput").value;
-  const res = await fetch("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
-  });
-
-  if (!res.ok) {
-    alert("❌ Mot de passe incorrect");
-  } else {
-    // 🔁 On revalide le statut admin via /api/calls
-    const callsRes = await fetch("/api/calls");
-    const data = await callsRes.json();
-    isAdmin = data.admin ?? false;
-    renderCalls(data.calls);
-  }
-}
-
-async function logout() {
-  await fetch("/api/logout", { method: "POST" });
-  isAdmin = false;
-  const res2 = await fetch("/api/calls");
-  const data = await res2.json();
-  renderCalls(data.calls);
-}
-
-
-  async function deleteCall(index) {
-    const li = document.querySelectorAll("#callList li")[index];
-    li.classList.add("fade-out");
-    setTimeout(async () => {
-      await fetch("/api/delete", {
+    async function login() {
+      const password = document.getElementById("passwordInput").value;
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ index })
+        body: JSON.stringify({ password })
       });
-      // ✅ Mise à jour gérée via SSE automatiquement
-    }, 400);
-  }
 
-  async function resetCalls() {
-    const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
-    if (!confirmReset) return;
-    await fetch("/api/reset", { method: "POST" });
-  }
-
-  async function submitViewerCall(event) {
-    event.preventDefault();
-    const slot = document.getElementById("slotInput").value.trim();
-    const user = document.getElementById("userInput").value.trim();
-    if (!slot || !user) return alert("Remplis les deux champs !");
-
-    const res = await fetch("/api/call", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slot, user })
-    });
-
-    if (res.ok) {
-      document.getElementById("slotInput").value = "";
-      document.getElementById("userInput").value = "";
-      showNotif("Call ajouté avec succès ✅");
-    } else {
-      alert("Erreur lors de l'envoi du call !");
+      if (!res.ok) {
+        alert("❌ Mot de passe incorrect");
+      } else {
+        const callsRes = await fetch("/api/calls");
+        const data = await callsRes.json();
+        isAdmin = data.admin ?? false;
+        renderCalls(data.calls);
+      }
     }
-  }
-</script>
 
+    async function logout() {
+      await fetch("/api/logout", { method: "POST" });
+      isAdmin = false;
+      const res2 = await fetch("/api/calls");
+      const data = await res2.json();
+      renderCalls(data.calls);
+    }
 
-  
+    async function deleteCall(index) {
+      const li = document.querySelectorAll("#callList li")[index];
+      li.classList.add("fade-out");
+      setTimeout(async () => {
+        await fetch("/api/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index })
+        });
+      }, 400);
+    }
+
+    async function resetCalls() {
+      const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
+      if (!confirmReset) return;
+      await fetch("/api/reset", { method: "POST" });
+    }
+
+    async function submitViewerCall(event) {
+      event.preventDefault();
+      const slot = document.getElementById("slotInput").value.trim();
+      const user = document.getElementById("userInput").value.trim();
+      if (!slot || !user) return alert("Remplis les deux champs !");
+
+      const res = await fetch("/api/call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slot, user })
+      });
+
+      if (res.ok) {
+        document.getElementById("slotInput").value = "";
+        document.getElementById("userInput").value = "";
+        showNotif("Call ajouté avec succès ✅");
+      } else {
+        alert("Erreur lors de l'envoi du call !");
+      }
+    }
+  </script>
 </body>
 </html>
