@@ -116,10 +116,10 @@
   const logoutBtn = document.getElementById("logoutBtn");
   const resetBtn = document.getElementById("resetBtn");
 
+  // 🚨 Ne pas compter sur "admin" depuis le SSE : on le gère uniquement côté client
   const evtSource = new EventSource("/events");
   evtSource.onmessage = function (event) {
     const data = JSON.parse(event.data);
-    isAdmin = data.admin ?? false;
     renderCalls(data.calls);
   };
 
@@ -175,13 +175,13 @@
     if (!res.ok) {
       alert("❌ Mot de passe incorrect");
     } else {
-      // Pas besoin de re-fetch, le SSE va renvoyer la bonne info automatiquement
+      isAdmin = true; // ✅ On définit manuellement
     }
   }
 
   async function logout() {
     await fetch("/api/logout", { method: "POST" });
-    // Pas besoin de re-fetch, le SSE va mettre à jour
+    isAdmin = false; // ✅ On le réinitialise manuellement
   }
 
   async function deleteCall(index) {
@@ -193,7 +193,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ index })
       });
-      // Pas besoin de res.json / re-render, SSE va s'en charger
+      // ✅ Mise à jour gérée via SSE automatiquement
     }, 400);
   }
 
@@ -201,7 +201,6 @@
     const confirmReset = confirm("⚠️ Es-tu sûr de vouloir VIDER toute la liste ?");
     if (!confirmReset) return;
     await fetch("/api/reset", { method: "POST" });
-    // Pas besoin de refresh manuel
   }
 
   async function submitViewerCall(event) {
@@ -220,12 +219,12 @@
       document.getElementById("slotInput").value = "";
       document.getElementById("userInput").value = "";
       showNotif("Call ajouté avec succès ✅");
-      // Pas besoin de refresh manuel
     } else {
       alert("Erreur lors de l'envoi du call !");
     }
   }
 </script>
+
 
   
 </body>
