@@ -44,8 +44,8 @@
 
     function renderCalls(calls) {
       callList.innerHTML = "";
-      const lastCalls = calls.slice(-3); // ✂️ limite aux 3 derniers
-      lastCalls.forEach((call) => {
+      const nextCalls = calls.slice(0, 3); // ✅ les 3 premiers à jouer
+      nextCalls.forEach((call) => {
         const li = document.createElement("li");
         li.className = "fade-in bg-white/5 backdrop-blur-sm px-3 py-1 rounded text-left shadow";
         li.innerHTML = `
