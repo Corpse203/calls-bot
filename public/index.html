@@ -164,25 +164,33 @@
     });
   }
 
-  async function login() {
-    const password = document.getElementById("passwordInput").value;
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password })
-    });
+async function login() {
+  const password = document.getElementById("passwordInput").value;
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
+  });
 
-    if (!res.ok) {
-      alert("❌ Mot de passe incorrect");
-    } else {
-      isAdmin = true; // ✅ On définit manuellement
-    }
+  if (!res.ok) {
+    alert("❌ Mot de passe incorrect");
+  } else {
+    // 🔁 On revalide le statut admin via /api/calls
+    const callsRes = await fetch("/api/calls");
+    const data = await callsRes.json();
+    isAdmin = data.admin ?? false;
+    renderCalls(data.calls);
   }
+}
 
-  async function logout() {
-    await fetch("/api/logout", { method: "POST" });
-    isAdmin = false; // ✅ On le réinitialise manuellement
-  }
+async function logout() {
+  await fetch("/api/logout", { method: "POST" });
+  isAdmin = false;
+  const res2 = await fetch("/api/calls");
+  const data = await res2.json();
+  renderCalls(data.calls);
+}
+
 
   async function deleteCall(index) {
     const li = document.querySelectorAll("#callList li")[index];
