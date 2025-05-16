@@ -21,7 +21,6 @@ function isAdmin(req) {
   return req.cookies.admin === "true";
 }
 
-// ✅ Crée la table si elle n'existe pas
 (async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS calls (
@@ -32,7 +31,6 @@ function isAdmin(req) {
   `);
 })();
 
-// 🔁 Diffusion SSE (sans admin)
 app.get("/events", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -50,7 +48,6 @@ app.get("/events", async (req, res) => {
   });
 });
 
-// ⏩ Broadcast actualisé
 function broadcastCalls() {
   getCalls().then((calls) => {
     const data = `data: ${JSON.stringify({ calls })}\n\n`;
@@ -58,19 +55,16 @@ function broadcastCalls() {
   });
 }
 
-// 📥 Lecture des appels depuis PostgreSQL
 async function getCalls() {
   const { rows } = await pool.query("SELECT * FROM calls ORDER BY id ASC");
   return rows.map(r => ({ slot: r.slot, user: r.username }));
 }
 
-// 📡 API — Récupération des appels avec état admin
 app.get("/api/calls", async (req, res) => {
   const calls = await getCalls();
   res.json({ calls, admin: isAdmin(req) });
 });
 
-// ➕ Ajouter un appel
 app.post("/api/call", async (req, res) => {
   const { slot, user } = req.body;
   if (!slot || !user) return res.status(400).json({ error: "Données manquantes" });
@@ -79,13 +73,11 @@ app.post("/api/call", async (req, res) => {
   res.json({ success: true });
 });
 
-// 🗑️ Supprimer un appel
 app.post("/api/delete", async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: "Unauthorized" });
 
   const { index } = req.body;
   const { rows } = await pool.query("SELECT id FROM calls ORDER BY id ASC");
-
   if (index < 0 || index >= rows.length) return res.status(400).json({ error: "Index invalide" });
 
   await pool.query("DELETE FROM calls WHERE id = $1", [rows[index].id]);
@@ -93,7 +85,6 @@ app.post("/api/delete", async (req, res) => {
   res.json({ success: true });
 });
 
-// ♻️ Réinitialiser la liste
 app.post("/api/reset", async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: "Unauthorized" });
 
@@ -102,12 +93,26 @@ app.post("/api/reset", async (req, res) => {
   res.json({ success: true });
 });
 
-// 🔐 Connexion admin
+app.post("/api/reorder", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: "Unauthorized" });
+
+  const { newOrder } = req.body;
+  if (!Array.isArray(newOrder)) return res.status(400).json({ error: "Format invalide" });
+
+  await pool.query("DELETE FROM calls");
+  for (const { slot, user } of newOrder) {
+    await pool.query("INSERT INTO calls (slot, username) VALUES ($1, $2)", [slot, user]);
+  }
+
+  broadcastCalls();
+  res.json({ success: true });
+});
+
 app.post("/api/login", (req, res) => {
   const { password } = req.body;
   if (password === MOD_PASSWORD) {
     res.cookie("admin", "true", {
-      httpOnly: false, // ⚠️ rendu accessible au JS frontend
+      httpOnly: false,
       sameSite: "Lax",
       secure: process.env.NODE_ENV === "production",
     });
@@ -117,13 +122,11 @@ app.post("/api/login", (req, res) => {
   }
 });
 
-// 🔓 Déconnexion admin
 app.post("/api/logout", (req, res) => {
   res.clearCookie("admin");
   res.json({ success: true });
 });
 
-// 🚀 Démarrage serveur
 app.listen(PORT, () => {
   console.log(`✅ Serveur en ligne sur http://localhost:${PORT}`);
 });
