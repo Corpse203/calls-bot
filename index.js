@@ -1,10 +1,11 @@
+// index.js (modifié pour Render avec PostgreSQL log)
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const { Pool } = require("pg");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const MOD_PASSWORD = "supermod123"; // 💡 à passer en variable d’environnement en production
+const MOD_PASSWORD = "supermod123"; // À externaliser
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -27,6 +28,16 @@ function isAdmin(req) {
       id SERIAL PRIMARY KEY,
       slot TEXT NOT NULL,
       username TEXT NOT NULL
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS logs (
+      id SERIAL PRIMARY KEY,
+      timestamp TIMESTAMPTZ NOT NULL,
+      ip TEXT,
+      slot TEXT,
+      username TEXT
     );
   `);
 })();
@@ -68,7 +79,16 @@ app.get("/api/calls", async (req, res) => {
 app.post("/api/call", async (req, res) => {
   const { slot, user } = req.body;
   if (!slot || !user) return res.status(400).json({ error: "Données manquantes" });
+
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const timestamp = new Date();
+
   await pool.query("INSERT INTO calls (slot, username) VALUES ($1, $2)", [slot, user]);
+  await pool.query(
+    "INSERT INTO logs (timestamp, ip, slot, username) VALUES ($1, $2, $3, $4)",
+    [timestamp, ip, slot, user]
+  );
+
   broadcastCalls();
   res.json({ success: true });
 });
@@ -87,7 +107,6 @@ app.post("/api/delete", async (req, res) => {
 
 app.post("/api/reset", async (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: "Unauthorized" });
-
   await pool.query("DELETE FROM calls");
   broadcastCalls();
   res.json({ success: true });
@@ -127,6 +146,13 @@ app.post("/api/logout", (req, res) => {
   res.json({ success: true });
 });
 
+app.get("/logs", async (req, res) => {
+  if (!isAdmin(req)) return res.status(403).send("Non autorisé");
+
+  const { rows } = await pool.query("SELECT * FROM logs ORDER BY timestamp DESC LIMIT 100");
+  res.json(rows);
+});
+
 app.listen(PORT, () => {
-  console.log(`✅ Serveur en ligne sur http://localhost:${PORT}`);
+  console.log(`\u2705 Serveur en ligne sur http://localhost:${PORT}`);
 });
