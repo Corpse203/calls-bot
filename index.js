@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MOD_PASSWORD = "supermod123"; // À externaliser
+const MOD_PASSWORD = process.env.ADMIN_PASSWORD; // À externaliser
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
