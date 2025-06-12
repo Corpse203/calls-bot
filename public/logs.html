@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historique des Logs</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans p-6">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-center text-blue-400 mb-6">🧾 Historique des Logs</h1>
+
+    <div id="logsContainer" class="overflow-auto rounded-lg shadow-md">
+      <table class="min-w-full bg-gray-800 text-sm">
+        <thead class="bg-gray-700 text-gray-300">
+          <tr>
+            <th class="px-4 py-2 text-left">Horodatage</th>
+            <th class="px-4 py-2 text-left">IP</th>
+            <th class="px-4 py-2 text-left">Slot</th>
+            <th class="px-4 py-2 text-left">Utilisateur</th>
+          </tr>
+        </thead>
+        <tbody id="logsTable" class="text-gray-200 divide-y divide-gray-600">
+        </tbody>
+      </table>
+    </div>
+
+    <p id="noLogs" class="text-center text-gray-500 mt-6 hidden">Aucun log trouvé.</p>
+  </div>
+
+  <script>
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/logs');
+        if (!res.ok) throw new Error("Non autorisé ou erreur serveur");
+        const logs = await res.json();
+
+        const table = document.getElementById("logsTable");
+        const noLogsMsg = document.getElementById("noLogs");
+
+        if (logs.length === 0) {
+          noLogsMsg.classList.remove("hidden");
+          return;
+        }
+
+        logs.forEach(log => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="px-4 py-2 whitespace-nowrap">${new Date(log.timestamp).toLocaleString()}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${log.ip}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${log.slot}</td>
+            <td class="px-4 py-2 whitespace-nowrap">${log.username}</td>
+          `;
+          table.appendChild(row);
+        });
+      } catch (err) {
+        alert("Erreur de chargement des logs : " + err.message);
+      }
+    }
+
+    fetchLogs();
+  </script>
+</body>
+</html>
