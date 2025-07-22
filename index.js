@@ -1,11 +1,11 @@
+// index.js (modifié pour Render avec PostgreSQL log)
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const compression = require("compression");
 const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MOD_PASSWORD = process.env.ADMIN_PASSWORD;
+const MOD_PASSWORD = process.env.ADMIN_PASSWORD; // À externaliser
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -14,7 +14,6 @@ const pool = new Pool({
 
 const clients = [];
 
-app.use(compression()); // ✅ Compression activée
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
@@ -43,30 +42,19 @@ function isAdmin(req) {
   `);
 })();
 
-// ✅ Favicon déjà servi via express.static("public") si présent dans /public
-
 app.get("/events", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  const client = { res, isAdmin: isAdmin(req) };
+  const client = { res };
   clients.push(client);
 
   const calls = await getCalls();
   res.write(`data: ${JSON.stringify({ calls })}\n\n`);
 
-  // ✅ Déconnexion auto après 5 minutes (non-admin uniquement)
-  if (!client.isAdmin) {
-    client.timeout = setTimeout(() => {
-      res.end();
-      clients.splice(clients.indexOf(client), 1);
-    }, 5 * 60 * 1000); // 5 minutes
-  }
-
   req.on("close", () => {
-    clearTimeout(client.timeout);
     clients.splice(clients.indexOf(client), 1);
   });
 });
@@ -166,5 +154,5 @@ app.get("/logs", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Serveur en ligne sur http://localhost:${PORT}`);
+  console.log(`\u2705 Serveur en ligne sur http://localhost:${PORT}`);
 });
