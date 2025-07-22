@@ -51,23 +51,22 @@
   </div>
 
   <div class="max-w-2xl mx-auto text-center pb-24">
-          <h1 class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-400">
+    <h1 class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-400">
+      Liste des Calls - Skrymi
+    </h1>
 
-   Liste des Calls - Skrymi
-</h1>
-<div class="text-xs text-gray-400 mb-6 space-x-2">
-  <a href="https://dlive.tv/skrymi" target="_blank" class="hover:text-blue-400 transition">📺 DLive</a>
-  <span>•</span>
-  <a href="https://kick.com/skrymi" target="_blank" class="hover:text-green-400 transition">🎯 Kick</a>
-  <span>•</span>
-  <a href="https://www.twitch.tv/skrymi" target="_blank" class="hover:text-purple-400 transition">🎮 Twitch</a>
-  <span>•</span>
-  <a href="https://www.youtube.com/@skrymi777" target="_blank" class="hover:text-red-400 transition">▶ YouTube</a>
-  <span>•</span>
-  <a href="mailto:Browkse0@gmail.com" target="_blank" class="hover:text-purple-400 transition">🛠️ Browkse </a>
-</div>
+    <div class="text-xs text-gray-400 mb-6 space-x-2">
+      <a href="https://dlive.tv/skrymi" target="_blank" class="hover:text-blue-400 transition">📺 DLive</a>
+      <span>•</span>
+      <a href="https://kick.com/skrymi" target="_blank" class="hover:text-green-400 transition">🎯 Kick</a>
+      <span>•</span>
+      <a href="https://www.twitch.tv/skrymi" target="_blank" class="hover:text-purple-400 transition">🎮 Twitch</a>
+      <span>•</span>
+      <a href="https://www.youtube.com/@skrymi777" target="_blank" class="hover:text-red-400 transition">▶ YouTube</a>
+      <span>•</span>
+      <a href="mailto:Browkse0@gmail.com" target="_blank" class="hover:text-purple-400 transition">🛠️ Browkse</a>
+    </div>
 
-    <!-- 📊 Compteur des calls -->
     <div id="callCounter" class="text-sm text-gray-400 mb-4"></div>
 
     <!-- 🎯 Formulaire PUBLIC -->
@@ -91,29 +90,28 @@
       </form>
     </div>
 
-    <!-- 🔘 Boutons admin -->
     <button id="logoutBtn" onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded mb-4 hidden transition">Se déconnecter</button>
     <button id="resetBtn" onclick="resetCalls()" class="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded mb-6 text-black font-semibold transition hidden">
       🧽 Vider la liste
     </button>
 
-    <!-- 🗓 Liste des calls -->
     <ul id="callList" class="space-y-4 mt-4"></ul>
   </div>
 
-  <!-- 🔐 Zone admin en pied de page -->
+  <!-- 🔐 Zone admin avec formulaire fonctionnel -->
   <div id="loginForm" class="hidden mb-10">
-    <div class="max-w-xl mx-auto flex justify-center gap-2">
-      <input id="passwordInput" type="password" placeholder="Mot de passe admin"
-             class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 w-60"/>
-      <button onclick="login()"
-              class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition font-semibold text-white">
-        Connexion
-      </button>
+    <div class="max-w-xl mx-auto">
+      <form id="admin-form" class="flex justify-center gap-2" onsubmit="submitAdminLogin(event)">
+        <input id="passwordInput" type="password" placeholder="Mot de passe admin"
+               class="p-2 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-blue-500 w-60" required />
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition font-semibold text-white">
+          Connexion
+        </button>
+      </form>
     </div>
   </div>
 
-  <!-- 📃 Footer personnalisé -->
   <footer class="mt-16 text-center text-sm text-gray-400 hover:text-white transition-opacity opacity-70">
     Développé avec ❤️ par <span class="text-purple-400 font-semibold">Browkse</span><br>
     📻 Suis <span class="text-white font-semibold">Skrymi</span> sur :
@@ -125,7 +123,6 @@
     <span class="text-gray-500 text-xs">© 2025 Skrymi. Tous droits réservés.</span>
   </footer>
 
-  <!-- 🧠 Script principal -->
   <script>
     let isAdmin = false;
     window.isAdmin = isAdmin;
@@ -185,6 +182,12 @@
         callList.appendChild(li);
       });
       if (window.updateSortable) window.updateSortable();
+    }
+
+    // ✅ Fonction appelée sur soumission du formulaire admin
+    function submitAdminLogin(event) {
+      event.preventDefault();
+      login();
     }
 
     async function login() {
