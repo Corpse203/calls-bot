@@ -46,9 +46,11 @@
   </div>
 
   <!-- ✅ Badge admin status -->
-  <div id="adminStatus" class="fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50">
-    🔒 Non connecté
-  </div>
+<div id="adminStatus"
+     class="fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow bg-red-600 text-white z-50 flex items-center gap-1">
+  <span class="inline sm:hidden" id="adminEmoji">🔒</span>
+  <span class="hidden sm:inline" id="adminText">Non connecté</span>
+</div>
 
   <div class="max-w-2xl mx-auto text-center pb-24">
     <h1 class="text-4xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-400">
