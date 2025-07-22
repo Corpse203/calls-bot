@@ -157,7 +157,9 @@
       logoutBtn.classList.toggle("hidden", !isAdmin);
       resetBtn.classList.toggle("hidden", !isAdmin);
 
-      adminStatus.textContent = isAdmin ? "✅ Admin connecté" : "🔒 Non connecté";
+      document.getElementById("adminEmoji").textContent = isAdmin ? "✅" : "🔒";
+      document.getElementById("adminText").textContent = isAdmin ? "Admin connecté" : "Non connecté";
+
       adminStatus.className = `fixed top-2 right-4 text-sm px-3 py-1 rounded-full font-medium shadow z-50 ${
         isAdmin ? "bg-green-600" : "bg-red-600"
       } text-white`;
