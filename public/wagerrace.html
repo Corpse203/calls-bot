@@ -14,6 +14,9 @@
     <div class="text-center mb-8">
       <h1 class="text-4xl font-extrabold tracking-tight">🏆 TOP 10 WAGER</h1>
       <p class="text-gray-400 mt-1">Classement officiel Rainbet</p>
+      <p class="text-gray-500 mt-1 text-sm">
+        📅 Période : 07 décembre 2025 → 06 janvier 2026
+      </p>
     </div>
 
     <!-- Card -->
@@ -46,6 +49,10 @@
   const updatedAt = document.getElementById("updatedAt");
   const countdownEl = document.getElementById("countdown");
 
+  // 📅 PÉRIODE FIXE
+  const START_AT = "2025-12-07";
+  const END_AT   = "2026-01-06";
+
   function format(n) {
     return Number(n).toLocaleString("fr-FR", {
       minimumFractionDigits: 2,
@@ -55,17 +62,11 @@
 
   async function loadTop10() {
     try {
-      const now = new Date();
-      const start = new Date(now);
-      start.setDate(start.getDate() - 30);
-
-      const s = start.toISOString().slice(0, 10);
-      const e = now.toISOString().slice(0, 10);
-
       const res = await fetch(
-        `/api/rainbet/public-top?start_at=${s}&end_at=${e}`
+        `/api/rainbet/public-top?start_at=${START_AT}&end_at=${END_AT}`
       );
       const data = await res.json();
+
       if (!res.ok) throw new Error(data.error || "Erreur API");
 
       tbody.innerHTML = "";
@@ -100,7 +101,7 @@
     }
   }
 
-  // -------- REFRESH AUTO --------
+  // 🔁 REFRESH AUTO
   let seconds = 60;
   countdownEl.textContent = seconds;
 
