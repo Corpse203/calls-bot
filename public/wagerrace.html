@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🏆 Rainbet — Top 10 Wager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-gray-950 to-black text-white p-6">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-4xl font-extrabold">🏆 TOP 10 WAGER</h1>
+      <p class="text-gray-400 mt-1">
+        Classement officiel Rainbet
+      </p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <table class="w-full text-sm">
+        <thead class="bg-white/10 text-gray-300">
+          <tr>
+            <th class="px-4 py-3 text-left">#</th>
+            <th class="px-4 py-3 text-left">Joueur</th>
+            <th class="px-4 py-3 text-right">Wager</th>
+          </tr>
+        </thead>
+        <tbody id="tbody" class="divide-y divide-white/10"></tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center text-xs text-gray-500 mt-4">
+      Dernière mise à jour : <span id="updatedAt">—</span>
+    </div>
+
+  </div>
+
+<script>
+  const tbody = document.getElementById("tbody");
+  const updatedAt = document.getElementById("updatedAt");
+
+  function format(n) {
+    return Number(n).toLocaleString("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  async function loadTop10() {
+    try {
+      // 🔁 période : 30 derniers jours
+      const now = new Date();
+      const start = new Date(now);
+      start.setDate(start.getDate() - 30);
+
+      const s = start.toISOString().slice(0, 10);
+      const e = now.toISOString().slice(0, 10);
+
+      const res = await fetch(
+        `/api/rainbet/public-top?start_at=${s}&end_at=${e}`
+      );
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Erreur API");
+
+      tbody.innerHTML = "";
+
+      data.top10.forEach((r) => {
+        const medal =
+          r.rank === 1 ? "🥇" :
+          r.rank === 2 ? "🥈" :
+          r.rank === 3 ? "🥉" : r.rank;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-bold">${medal}</td>
+          <td class="px-4 py-3 font-semibold">${r.username}</td>
+          <td class="px-4 py-3 text-right">${format(r.wagered_amount)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      updatedAt.textContent = data.updated_at || "—";
+    } catch (err) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="3" class="px-4 py-6 text-center text-red-400">
+            ❌ Erreur de chargement
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  loadTop10();
+</script>
+</body>
+</html>
