@@ -11,35 +11,34 @@
   <div class="max-w-6xl mx-auto">
 
     <!-- Header -->
-    <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+    <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-3xl font-extrabold">📊 Rainbet — Affiliates</h1>
         <p class="text-gray-400 text-sm">
-          Page admin • Données officielles Rainbet (clé protégée côté serveur)
+          Données officielles Rainbet (clé API protégée côté serveur)
         </p>
       </div>
-      <a href="/"
-         class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
+      <a href="/" class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-semibold">
         ← Retour aux calls
       </a>
     </div>
 
-    <!-- Filters -->
+    <!-- Filtres -->
     <div class="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         <div>
           <label class="text-xs text-gray-400">Début</label>
           <input id="startAt" type="date"
-                 class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2 outline-none"/>
+            class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2"/>
         </div>
         <div>
           <label class="text-xs text-gray-400">Fin</label>
           <input id="endAt" type="date"
-                 class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2 outline-none"/>
+            class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2"/>
         </div>
         <button id="btnLoad"
-                class="md:col-span-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition">
-          Charger les données
+          class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold">
+          Charger
         </button>
       </div>
       <div id="status" class="mt-3 text-sm text-gray-300"></div>
@@ -47,151 +46,106 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
-        <div class="text-xs text-gray-400">Total (brut)</div>
-        <div id="totalRaw" class="text-2xl font-bold mt-1">—</div>
+      <div class="bg-white/5 rounded-xl p-4">
+        <div class="text-xs text-gray-400">Total wager</div>
+        <div id="totalWager" class="text-2xl font-bold">—</div>
       </div>
-      <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
-        <div class="text-xs text-gray-400">Total (net)</div>
-        <div id="totalNet" class="text-2xl font-bold mt-1">—</div>
+      <div class="bg-white/5 rounded-xl p-4">
+        <div class="text-xs text-gray-400">Affiliates</div>
+        <div id="totalRows" class="text-2xl font-bold">—</div>
       </div>
-      <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
-        <div class="text-xs text-gray-400">Entrées</div>
-        <div id="totalRows" class="text-2xl font-bold mt-1">—</div>
+      <div class="bg-white/5 rounded-xl p-4">
+        <div class="text-xs text-gray-400">Dernière mise à jour</div>
+        <div id="lastUpdate" class="text-sm">—</div>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="overflow-auto rounded-2xl border border-white/10">
+    <div class="overflow-auto rounded-xl border border-white/10">
       <table class="min-w-full text-sm">
         <thead class="bg-white/5 text-gray-300">
           <tr>
-            <th class="px-4 py-3 text-left">Date</th>
-            <th class="px-4 py-3 text-left">Clicks</th>
-            <th class="px-4 py-3 text-left">Signups</th>
-            <th class="px-4 py-3 text-left">Deposits</th>
-            <th class="px-4 py-3 text-left">Wagered</th>
-            <th class="px-4 py-3 text-left">Revenue</th>
+            <th class="px-4 py-3 text-left">#</th>
+            <th class="px-4 py-3 text-left">Username</th>
+            <th class="px-4 py-3 text-left">Wager</th>
           </tr>
         </thead>
-        <tbody id="tbody" class="divide-y divide-white/10 text-gray-200"></tbody>
+        <tbody id="tbody" class="divide-y divide-white/10"></tbody>
       </table>
     </div>
 
   </div>
 
-  <script>
-    const startAt = document.getElementById("startAt");
-    const endAt = document.getElementById("endAt");
-    const btnLoad = document.getElementById("btnLoad");
-    const statusEl = document.getElementById("status");
+<script>
+  const startAt = document.getElementById("startAt");
+  const endAt = document.getElementById("endAt");
+  const btnLoad = document.getElementById("btnLoad");
+  const statusEl = document.getElementById("status");
+  const tbody = document.getElementById("tbody");
 
-    const totalRaw = document.getElementById("totalRaw");
-    const totalNet = document.getElementById("totalNet");
-    const totalRows = document.getElementById("totalRows");
-    const tbody = document.getElementById("tbody");
+  const totalWager = document.getElementById("totalWager");
+  const totalRows = document.getElementById("totalRows");
+  const lastUpdate = document.getElementById("lastUpdate");
 
-    function setStatus(msg, error = false) {
-      statusEl.textContent = msg;
-      statusEl.className =
-        "mt-3 text-sm " + (error ? "text-red-400" : "text-gray-300");
-    }
+  function setStatus(msg, err = false) {
+    statusEl.textContent = msg;
+    statusEl.className = "mt-3 text-sm " + (err ? "text-red-400" : "text-gray-300");
+  }
 
-    function yyyyMmDd(d) {
-      const pad = (n) => String(n).padStart(2, "0");
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    }
+  function format(n) {
+    return Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  }
 
-    function num(v) {
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
+  async function load() {
+    try {
+      setStatus("Chargement...");
+      btnLoad.disabled = true;
 
-    function render(data) {
-      const rows =
-        Array.isArray(data) ? data :
-        Array.isArray(data?.data) ? data.data :
-        Array.isArray(data?.results) ? data.results :
-        [];
+      const s = startAt.value;
+      const e = endAt.value;
+
+      const res = await fetch(`/api/rainbet/affiliates?start_at=${s}&end_at=${e}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Erreur API");
+
+      const rows = data.affiliates || [];
 
       tbody.innerHTML = "";
-      let sumRaw = 0;
-      let sumNet = 0;
+      let sum = 0;
 
-      rows.forEach((r) => {
-        const date = r.date || r.day || "—";
-        const clicks = r.clicks ?? 0;
-        const signups = r.signups ?? 0;
-        const deposits = r.deposits ?? 0;
-        const wagered = r.wagered ?? r.total_wagered ?? 0;
-        const revenue = r.revenue ?? r.total_revenue ?? 0;
+      rows.forEach((r, i) => {
+        sum += Number(r.wagered_amount);
 
-        sumRaw += num(r.revenue_raw ?? revenue);
-        sumNet += num(r.revenue_net ?? revenue);
-
-        const tr = document.createElementaxt("tr");
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td class="px-4 py-3">${date}</td>
-          <td class="px-4 py-3">${clicks}</td>
-          <td class="px-4 py-3">${signups}</td>
-          <td class="px-4 py-3">${deposits}</td>
-          <td class="px-4 py-3">${wagered}</td>
-          <td class="px-4 py-3">${revenue}</td>
+          <td class="px-4 py-3">${i + 1}</td>
+          <td class="px-4 py-3 font-semibold">${r.username}</td>
+          <td class="px-4 py-3">${format(r.wagered_amount)}</td>
         `;
         tbody.appendChild(tr);
       });
 
       totalRows.textContent = rows.length;
-      totalRaw.textContent = sumRaw.toFixed(2);
-      totalNet.textContent = sumNet.toFixed(2);
-      setStatus(`✅ ${rows.length} ligne(s) chargée(s)`);
+      totalWager.textContent = format(sum);
+      lastUpdate.textContent = data.cache_updated_at || "—";
+
+      setStatus("✅ Données chargées");
+    } catch (err) {
+      setStatus("❌ " + err.message, true);
+    } finally {
+      btnLoad.disabled = false;
     }
+  }
 
-    async function load() {
-      try {
-        setStatus("Chargement...");
-        btnLoad.disabled = true;
+  // valeurs par défaut
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(start.getDate() - 7);
+  startAt.value = start.toISOString().slice(0, 10);
+  endAt.value = now.toISOString().slice(0, 10);
 
-        const s = startAt.value;
-        const e = endAt.value;
-
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e)) {
-          return setStatus("❌ Format requis : YYYY-MM-DD", true);
-        }
-
-        const res = await fetch(
-          `/api/rainbet/affiliates?start_at=${encodeURIComponent(s)}&end_at=${encodeURIComponent(e)}`
-        );
-
-        const text = await res.text();
-
-        if (text.trim().startsWith("<")) {
-          throw new Error("Le serveur a renvoyé du HTML (non connecté admin ?)");
-        }
-
-        const data = JSON.parse(text);
-        if (!res.ok) throw new Error(data?.error || "Erreur API");
-
-        render(data);
-      } catch (err) {
-        setStatus("❌ " + err.message, true);
-        tbody.innerHTML = "";
-        totalRows.textContent = "—";
-        totalRaw.textContent = "—";
-        totalNet.textContent = "—";
-      } finally {
-        btnLoad.disabled = false;
-      }
-    }
-
-    // 7 derniers jours par défaut
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(start.getDate() - 7);
-    startAt.value = yyyyMmDd(start);
-    endAt.value = yyyyMmDd(now);
-
-    btnLoad.addEventListener("click", load);
-  </script>
+  btnLoad.addEventListener("click", load);
+</script>
 </body>
 </html>
