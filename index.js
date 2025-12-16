@@ -263,6 +263,50 @@ app.get("/api/rainbet/affiliates", async (req, res) => {
     res.status(500).json({ error: err.message || "Erreur Rainbet" });
   }
 });
+// ===============================
+// Rainbet PUBLIC TOP 10 (sans cookie admin)
+// ===============================
+app.get("/api/rainbet/public-top", async (req, res) => {
+  try {
+    const { start_at, end_at } = req.query;
+
+    if (!start_at || !end_at) {
+      return res.status(400).json({ error: "Dates manquantes" });
+    }
+
+    const key = process.env.RAINBET_API_KEY;
+    if (!key) {
+      return res.status(500).json({ error: "RAINBET_API_KEY manquant" });
+    }
+
+    const url =
+      `https://services.rainbet.com/v1/external/affiliates` +
+      `?start_at=${encodeURIComponent(start_at)}` +
+      `&end_at=${encodeURIComponent(end_at)}` +
+      `&key=${encodeURIComponent(key)}`;
+
+    const data = await fetchJson(url);
+
+    const rows = Array.isArray(data.affiliates) ? data.affiliates : [];
+
+    // 🔥 TRI + TOP 10
+    const top10 = rows
+      .sort((a, b) => Number(b.wagered_amount) - Number(a.wagered_amount))
+      .slice(0, 10)
+      .map((r, i) => ({
+        rank: i + 1,
+        username: r.username,
+        wagered_amount: Number(r.wagered_amount)
+      }));
+
+    res.json({
+      top10,
+      updated_at: data.cache_updated_at || null
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Erreur Rainbet" });
+  }
+});
 
 // ===============================
 // Start server
