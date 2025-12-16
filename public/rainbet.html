@@ -3,16 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rainbet - Affiliates</title>
+  <title>Rainbet — Affiliates</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="min-h-screen bg-gray-950 text-white p-6">
-  <div class="max-w-5xl mx-auto">
-    <div class="flex items-center justify-between gap-3 flex-wrap mb-6">
+  <div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
       <div>
         <h1 class="text-3xl font-extrabold">📊 Rainbet — Affiliates</h1>
-        <p class="text-gray-400 text-sm">Page admin (clé API protégée côté serveur).</p>
+        <p class="text-gray-400 text-sm">
+          Page admin • Données officielles Rainbet (clé protégée côté serveur)
+        </p>
       </div>
       <a href="/"
          class="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm font-semibold transition">
@@ -20,28 +24,29 @@
       </a>
     </div>
 
-    <div class="bg-white/5 border border-white/10 rounded-2xl p-4 mb-6">
-      <div class="flex flex-col md:flex-row gap-3 md:items-end">
-        <div class="flex-1">
-          <label class="text-xs text-gray-400">Début (YYYY-MM-DD)</label>
+    <!-- Filters -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-5 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+          <label class="text-xs text-gray-400">Début</label>
           <input id="startAt" type="date"
                  class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2 outline-none"/>
         </div>
-        <div class="flex-1">
-          <label class="text-xs text-gray-400">Fin (YYYY-MM-DD)</label>
+        <div>
+          <label class="text-xs text-gray-400">Fin</label>
           <input id="endAt" type="date"
                  class="w-full mt-1 bg-gray-900 border border-white/10 rounded-lg px-3 py-2 outline-none"/>
         </div>
         <button id="btnLoad"
-                class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition">
-          Charger
+                class="md:col-span-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition">
+          Charger les données
         </button>
       </div>
-
       <div id="status" class="mt-3 text-sm text-gray-300"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <div class="bg-white/5 border border-white/10 rounded-2xl p-4">
         <div class="text-xs text-gray-400">Total (brut)</div>
         <div id="totalRaw" class="text-2xl font-bold mt-1">—</div>
@@ -56,6 +61,7 @@
       </div>
     </div>
 
+    <!-- Table -->
     <div class="overflow-auto rounded-2xl border border-white/10">
       <table class="min-w-full text-sm">
         <thead class="bg-white/5 text-gray-300">
@@ -68,119 +74,4 @@
             <th class="px-4 py-3 text-left">Revenue</th>
           </tr>
         </thead>
-        <tbody id="tbody" class="divide-y divide-white/10 text-gray-200"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    const startAt = document.getElementById("startAt");
-    const endAt = document.getElementById("endAt");
-    const btnLoad = document.getElementById("btnLoad");
-    const statusEl = document.getElementById("status");
-
-    const totalRaw = document.getElementById("totalRaw");
-    const totalNet = document.getElementById("totalNet");
-    const totalRows = document.getElementById("totalRows");
-    const tbody = document.getElementById("tbody");
-
-    function yyyyMmDd(d) {
-      const pad = (n) => String(n).padStart(2, "0");
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-    }
-
-    function setStatus(msg, isError=false) {
-      statusEl.textContent = msg;
-      statusEl.className = "mt-3 text-sm " + (isError ? "text-red-400" : "text-gray-300");
-    }
-
-    function num(v) {
-      const n = Number(v);
-      return Number.isFinite(n) ? n : 0;
-    }
-
-    function render(data) {
-      // ⚠️ Rainbet peut renvoyer des champs différents selon leur API
-      // On essaie de gérer plusieurs formats sans casser la page.
-      const rows =
-        Array.isArray(data) ? data :
-        Array.isArray(data?.data) ? data.data :
-        Array.isArray(data?.results) ? data.results :
-        [];
-
-      tbody.innerHTML = "";
-      let sumRevenueRaw = 0;
-      let sumRevenueNet = 0;
-
-      rows.forEach((r) => {
-        const date = r.date || r.day || r.created_at || "—";
-        const clicks = r.clicks ?? r.total_clicks ?? 0;
-        const signups = r.signups ?? r.registrations ?? 0;
-        const deposits = r.deposits ?? r.deposit_count ?? 0;
-        const wagered = r.wagered ?? r.total_wagered ?? r.volume ?? 0;
-        const revenue = r.revenue ?? r.total_revenue ?? r.earnings ?? 0;
-
-        // Si l’API fournit brut/net, on les prend, sinon on met revenue partout
-        const revRaw = num(r.revenue_raw ?? revenue);
-        const revNet = num(r.revenue_net ?? revenue);
-
-        sumRevenueRaw += revRaw;
-        sumRevenueNet += revNet;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="px-4 py-3 whitespace-nowrap">${date}</td>
-          <td class="px-4 py-3 whitespace-nowrap">${clicks}</td>
-          <td class="px-4 py-3 whitespace-nowrap">${signups}</td>
-          <td class="px-4 py-3 whitespace-nowrap">${deposits}</td>
-          <td class="px-4 py-3 whitespace-nowrap">${wagered}</td>
-          <td class="px-4 py-3 whitespace-nowrap">${revenue}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      totalRows.textContent = rows.length;
-      totalRaw.textContent = sumRevenueRaw.toFixed(2);
-      totalNet.textContent = sumRevenueNet.toFixed(2);
-
-      setStatus(`✅ Chargé: ${rows.length} ligne(s).`);
-    }
-
-    async function load() {
-      try {
-        setStatus("Chargement...");
-        btnLoad.disabled = true;
-
-        const s = startAt.value;
-        const e = endAt.value;
-
-        const res = await fetch(`/api/rainbet/affiliates?start_at=${encodeURIComponent(s)}&end_at=${encodeURIComponent(e)}`);
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data?.error || "Erreur API");
-        }
-
-        render(data);
-      } catch (err) {
-        setStatus("❌ " + (err.message || "Erreur"), true);
-        tbody.innerHTML = "";
-        totalRows.textContent = "—";
-        totalRaw.textContent = "—";
-        totalNet.textContent = "—";
-      } finally {
-        btnLoad.disabled = false;
-      }
-    }
-
-    // Par défaut: 7 derniers jours
-    const now = new Date();
-    const start = new Date(now);
-    start.setDate(start.getDate() - 7);
-    startAt.value = yyyyMmDd(start);
-    endAt.value = yyyyMmDd(now);
-
-    btnLoad.addEventListener("click", load);
-  </script>
-</body>
-</html>
+        <tbody id="tbody" class="divide-y di
