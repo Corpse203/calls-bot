@@ -7,19 +7,17 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="min-h-screen bg-gradient-to-b from-gray-950 to-black text-white p-6">
+<body class="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#020617] to-black text-white p-6">
   <div class="max-w-3xl mx-auto">
 
     <!-- Header -->
     <div class="text-center mb-8">
-      <h1 class="text-4xl font-extrabold">🏆 TOP 10 WAGER</h1>
-      <p class="text-gray-400 mt-1">
-        Classement officiel Rainbet
-      </p>
+      <h1 class="text-4xl font-extrabold tracking-tight">🏆 TOP 10 WAGER</h1>
+      <p class="text-gray-400 mt-1">Classement officiel Rainbet</p>
     </div>
 
     <!-- Card -->
-    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
       <table class="w-full text-sm">
         <thead class="bg-white/10 text-gray-300">
           <tr>
@@ -33,8 +31,12 @@
     </div>
 
     <!-- Footer -->
-    <div class="text-center text-xs text-gray-500 mt-4">
-      Dernière mise à jour : <span id="updatedAt">—</span>
+    <div class="text-center text-xs text-gray-400 mt-4">
+      Dernière mise à jour :
+      <span id="updatedAt" class="font-semibold">—</span>
+      <span class="mx-2">•</span>
+      Rafraîchissement dans
+      <span id="countdown" class="font-semibold">60</span>s
     </div>
 
   </div>
@@ -42,6 +44,7 @@
 <script>
   const tbody = document.getElementById("tbody");
   const updatedAt = document.getElementById("updatedAt");
+  const countdownEl = document.getElementById("countdown");
 
   function format(n) {
     return Number(n).toLocaleString("fr-FR", {
@@ -52,7 +55,6 @@
 
   async function loadTop10() {
     try {
-      // 🔁 période : 30 derniers jours
       const now = new Date();
       const start = new Date(now);
       start.setDate(start.getDate() - 30);
@@ -64,7 +66,6 @@
         `/api/rainbet/public-top?start_at=${s}&end_at=${e}`
       );
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || "Erreur API");
 
       tbody.innerHTML = "";
@@ -76,10 +77,13 @@
           r.rank === 3 ? "🥉" : r.rank;
 
         const tr = document.createElement("tr");
+        tr.className = "hover:bg-white/5 transition";
         tr.innerHTML = `
           <td class="px-4 py-3 font-bold">${medal}</td>
           <td class="px-4 py-3 font-semibold">${r.username}</td>
-          <td class="px-4 py-3 text-right">${format(r.wagered_amount)}</td>
+          <td class="px-4 py-3 text-right tabular-nums">
+            ${format(r.wagered_amount)}
+          </td>
         `;
         tbody.appendChild(tr);
       });
@@ -96,7 +100,21 @@
     }
   }
 
+  // -------- REFRESH AUTO --------
+  let seconds = 60;
+  countdownEl.textContent = seconds;
+
+  setInterval(() => {
+    seconds--;
+    if (seconds <= 0) seconds = 60;
+    countdownEl.textContent = seconds;
+  }, 1000);
+
   loadTop10();
+  setInterval(() => {
+    seconds = 60;
+    loadTop10();
+  }, 60 * 1000);
 </script>
 </body>
 </html>
