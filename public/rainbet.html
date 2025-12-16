@@ -74,4 +74,124 @@
             <th class="px-4 py-3 text-left">Revenue</th>
           </tr>
         </thead>
-        <tbody id="tbody" class="divide-y di
+        <tbody id="tbody" class="divide-y divide-white/10 text-gray-200"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const startAt = document.getElementById("startAt");
+    const endAt = document.getElementById("endAt");
+    const btnLoad = document.getElementById("btnLoad");
+    const statusEl = document.getElementById("status");
+
+    const totalRaw = document.getElementById("totalRaw");
+    const totalNet = document.getElementById("totalNet");
+    const totalRows = document.getElementById("totalRows");
+    const tbody = document.getElementById("tbody");
+
+    function setStatus(msg, error = false) {
+      statusEl.textContent = msg;
+      statusEl.className =
+        "mt-3 text-sm " + (error ? "text-red-400" : "text-gray-300");
+    }
+
+    function yyyyMmDd(d) {
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function num(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function render(data) {
+      const rows =
+        Array.isArray(data) ? data :
+        Array.isArray(data?.data) ? data.data :
+        Array.isArray(data?.results) ? data.results :
+        [];
+
+      tbody.innerHTML = "";
+      let sumRaw = 0;
+      let sumNet = 0;
+
+      rows.forEach((r) => {
+        const date = r.date || r.day || "—";
+        const clicks = r.clicks ?? 0;
+        const signups = r.signups ?? 0;
+        const deposits = r.deposits ?? 0;
+        const wagered = r.wagered ?? r.total_wagered ?? 0;
+        const revenue = r.revenue ?? r.total_revenue ?? 0;
+
+        sumRaw += num(r.revenue_raw ?? revenue);
+        sumNet += num(r.revenue_net ?? revenue);
+
+        const tr = document.createElementaxt("tr");
+        tr.innerHTML = `
+          <td class="px-4 py-3">${date}</td>
+          <td class="px-4 py-3">${clicks}</td>
+          <td class="px-4 py-3">${signups}</td>
+          <td class="px-4 py-3">${deposits}</td>
+          <td class="px-4 py-3">${wagered}</td>
+          <td class="px-4 py-3">${revenue}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      totalRows.textContent = rows.length;
+      totalRaw.textContent = sumRaw.toFixed(2);
+      totalNet.textContent = sumNet.toFixed(2);
+      setStatus(`✅ ${rows.length} ligne(s) chargée(s)`);
+    }
+
+    async function load() {
+      try {
+        setStatus("Chargement...");
+        btnLoad.disabled = true;
+
+        const s = startAt.value;
+        const e = endAt.value;
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || !/^\d{4}-\d{2}-\d{2}$/.test(e)) {
+          return setStatus("❌ Format requis : YYYY-MM-DD", true);
+        }
+
+        const res = await fetch(
+          `/api/rainbet/affiliates?start_at=${encodeURIComponent(s)}&end_at=${encodeURIComponent(e)}`
+        );
+
+        const text = await res.text();
+
+        if (text.trim().startsWith("<")) {
+          throw new Error("Le serveur a renvoyé du HTML (non connecté admin ?)");
+        }
+
+        const data = JSON.parse(text);
+        if (!res.ok) throw new Error(data?.error || "Erreur API");
+
+        render(data);
+      } catch (err) {
+        setStatus("❌ " + err.message, true);
+        tbody.innerHTML = "";
+        totalRows.textContent = "—";
+        totalRaw.textContent = "—";
+        totalNet.textContent = "—";
+      } finally {
+        btnLoad.disabled = false;
+      }
+    }
+
+    // 7 derniers jours par défaut
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - 7);
+    startAt.value = yyyyMmDd(start);
+    endAt.value = yyyyMmDd(now);
+
+    btnLoad.addEventListener("click", load);
+  </script>
+</body>
+</html>
