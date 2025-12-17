@@ -3,29 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🏆 Rainbet — Wager Race Top 10</title>
+<title>🏆 Rainbet — Podium & Top 10</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-/* 🎨 Glow champion */
 @keyframes championGlow {
   0%,100% { box-shadow: 0 0 25px rgba(255,200,60,.25); }
   50% { box-shadow: 0 0 45px rgba(255,200,60,.45); }
 }
 .glow-champion { animation: championGlow 4s ease-in-out infinite; }
 
-/* ✨ fade up */
 .fade-up { animation: fadeUp .6s ease-out both; }
 @keyframes fadeUp {
   from { opacity:0; transform: translateY(20px); }
   to { opacity:1; transform:none; }
-}
-
-/* 🔔 changement */
-.flash-change { animation: flash 1s ease-out; }
-@keyframes flash {
-  0% { background: rgba(255,255,255,.15); }
-  100% { background: transparent; }
 }
 </style>
 </head>
@@ -46,36 +37,36 @@ bg-gradient-to-br from-[#0b1220] via-[#020617] to-black">
 </div>
 
 <!-- PODIUM -->
-<div id="podium" class="grid grid-cols-3 gap-6 items-end mb-14">
+<div class="grid grid-cols-3 gap-6 items-end mb-14">
 
-<!-- 🥈 -->
+<!-- 🥈 Deuxième -->
 <div class="fade-up">
   <div class="h-[180px] rounded-xl bg-white/10 p-4 flex flex-col justify-end text-center">
     <div class="text-xl">🥈</div>
     <div id="p2-name" class="font-bold mt-1">—</div>
     <div id="p2-wager" class="text-sm text-gray-300">—</div>
-    <div class="text-xs text-gray-400 mt-1">Challenger</div>
+    <div class="text-xs text-gray-400 mt-1">Deuxième</div>
   </div>
 </div>
 
-<!-- 🥇 -->
+<!-- 🥇 Premier -->
 <div class="fade-up">
   <div class="h-[230px] rounded-xl p-4 flex flex-col justify-end text-center
   bg-yellow-500/20 border border-yellow-400 glow-champion">
     <div class="text-2xl">🥇</div>
     <div id="p1-name" class="font-extrabold text-lg mt-1">—</div>
     <div id="p1-wager" class="text-sm text-yellow-200">—</div>
-    <div class="text-xs text-yellow-300 mt-1">Champion</div>
+    <div class="text-xs text-yellow-300 mt-1">Premier</div>
   </div>
 </div>
 
-<!-- 🥉 -->
+<!-- 🥉 Troisième -->
 <div class="fade-up">
   <div class="h-[160px] rounded-xl bg-white/10 p-4 flex flex-col justify-end text-center">
     <div class="text-xl">🥉</div>
     <div id="p3-name" class="font-bold mt-1">—</div>
     <div id="p3-wager" class="text-sm text-gray-300">—</div>
-    <div class="text-xs text-gray-400 mt-1">Contender</div>
+    <div class="text-xs text-gray-400 mt-1">Troisième</div>
   </div>
 </div>
 
@@ -103,26 +94,26 @@ bg-gradient-to-br from-[#0b1220] via-[#020617] to-black">
   <span id="countdown" class="font-semibold">60</span>s
 </div>
 
-<div id="alert" class="text-center text-yellow-300 text-sm mt-3 hidden">
-🔥 Nouveau leader !
-</div>
-
 </div>
 
 <script>
-const START_AT="2025-12-07", END_AT="2026-01-06";
+const START_AT="2025-12-07";
+const END_AT="2026-01-06";
+
 const tbody=document.getElementById("tbody");
 const updatedAt=document.getElementById("updatedAt");
 const countdown=document.getElementById("countdown");
-const alertBox=document.getElementById("alert");
 
-const p1n=p1-name, p1w=p1-wager;
-const p2n=p2-name, p2w=p2-wager;
-const p3n=p3-name, p3w=p3-wager;
+const p1n=document.getElementById("p1-name");
+const p1w=document.getElementById("p1-wager");
+const p2n=document.getElementById("p2-name");
+const p2w=document.getElementById("p2-wager");
+const p3n=document.getElementById("p3-name");
+const p3w=document.getElementById("p3-wager");
 
-let lastLeader=null;
-
-function f(n){return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2});}
+function f(n){
+  return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2});
+}
 
 async function load(){
   const res=await fetch(`/api/rainbet/public-top?start_at=${START_AT}&end_at=${END_AT}`);
@@ -132,25 +123,27 @@ async function load(){
   const rows=data.top10;
   tbody.innerHTML="";
 
-  if(rows[0]?.username!==lastLeader){
-    if(lastLeader) {
-      alertBox.classList.remove("hidden");
-      setTimeout(()=>alertBox.classList.add("hidden"),2000);
-    }
-    lastLeader=rows[0]?.username;
+  if(rows[0]){
+    p1n.textContent=rows[0].username;
+    p1w.textContent=f(rows[0].wagered_amount);
+  }
+  if(rows[1]){
+    p2n.textContent=rows[1].username;
+    p2w.textContent=f(rows[1].wagered_amount);
+  }
+  if(rows[2]){
+    p3n.textContent=rows[2].username;
+    p3w.textContent=f(rows[2].wagered_amount);
   }
 
-  [ [p1n,p1w,0],[p2n,p2w,1],[p3n,p3w,2] ].forEach(([n,w,i])=>{
-    if(rows[i]){n.textContent=rows[i].username;w.textContent=f(rows[i].wagered_amount);}
-  });
-
   rows.forEach(r=>{
-    const medal=r.rank==1?"🥇":r.rank==2?"🥈":r.rank==3?"🥉":r.rank;
+    const medal=r.rank===1?"🥇":r.rank===2?"🥈":r.rank===3?"🥉":r.rank;
     const tr=document.createElement("tr");
     tr.innerHTML=`
       <td class="px-4 py-3 font-bold">${medal}</td>
       <td class="px-4 py-3 font-semibold">${r.username}</td>
-      <td class="px-4 py-3 text-right tabular-nums">${f(r.wagered_amount)}</td>`;
+      <td class="px-4 py-3 text-right tabular-nums">${f(r.wagered_amount)}</td>
+    `;
     tbody.appendChild(tr);
   });
 
@@ -159,7 +152,8 @@ async function load(){
 
 let sec=60;
 setInterval(()=>{sec--;if(sec<=0)sec=60;countdown.textContent=sec;},1000);
-load(); setInterval(()=>{sec=60;load();},60000);
+load();
+setInterval(()=>{sec=60;load();},60000);
 </script>
 </body>
 </html>
