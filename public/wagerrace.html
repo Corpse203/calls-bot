@@ -1,162 +1,165 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🏆 Rainbet — Wager Race Top 10</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 Rainbet — Wager Race Top 10</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+/* 🎨 Glow champion */
+@keyframes championGlow {
+  0%,100% { box-shadow: 0 0 25px rgba(255,200,60,.25); }
+  50% { box-shadow: 0 0 45px rgba(255,200,60,.45); }
+}
+.glow-champion { animation: championGlow 4s ease-in-out infinite; }
+
+/* ✨ fade up */
+.fade-up { animation: fadeUp .6s ease-out both; }
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(20px); }
+  to { opacity:1; transform:none; }
+}
+
+/* 🔔 changement */
+.flash-change { animation: flash 1s ease-out; }
+@keyframes flash {
+  0% { background: rgba(255,255,255,.15); }
+  100% { background: transparent; }
+}
+</style>
 </head>
 
-<body class="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#020617] to-black text-white p-6">
-  <div class="max-w-4xl mx-auto">
+<body class="min-h-screen text-white p-6
+bg-[radial-gradient(circle_at_top,_rgba(255,215,100,0.12),transparent_55%)]
+bg-gradient-to-br from-[#0b1220] via-[#020617] to-black">
 
-    <!-- Header -->
-    <div class="text-center mb-10">
-      <h1 class="text-4xl font-extrabold tracking-tight">🏆 PODIUM & TOP 10</h1>
-      <p class="text-gray-400 mt-1">Classement officiel Rainbet</p>
-      <p class="text-gray-500 mt-1 text-sm">
-        📅 Période : 07 décembre 2025 → 06 janvier 2026
-      </p>
-    </div>
+<div class="max-w-5xl mx-auto">
 
-    <!-- 🏆 PODIUM -->
-    <div id="podium" class="grid grid-cols-3 gap-4 items-end mb-12 text-center">
-      <!-- 2e -->
-      <div class="order-1">
-        <div class="bg-white/10 rounded-xl p-4 h-40 flex flex-col justify-end">
-          <div class="text-xl">🥈</div>
-          <div id="p2-name" class="font-bold mt-1">—</div>
-          <div id="p2-wager" class="text-sm text-gray-300">—</div>
-        </div>
-      </div>
+<!-- HEADER -->
+<div class="text-center mb-12">
+  <h1 class="text-4xl font-extrabold tracking-tight">🏆 PODIUM & TOP 10</h1>
+  <p class="text-gray-400 mt-1">Classement officiel Rainbet</p>
+  <p class="text-gray-500 mt-1 text-sm">
+    📅 07 décembre 2025 → 06 janvier 2026
+  </p>
+</div>
 
-      <!-- 1er -->
-      <div class="order-2">
-        <div class="bg-yellow-500/20 border border-yellow-400 rounded-xl p-4 h-52 flex flex-col justify-end shadow-lg shadow-yellow-500/20 animate-pulse">
-          <div class="text-2xl">🥇</div>
-          <div id="p1-name" class="font-extrabold text-lg mt-1">—</div>
-          <div id="p1-wager" class="text-sm text-yellow-200">—</div>
-        </div>
-      </div>
+<!-- PODIUM -->
+<div id="podium" class="grid grid-cols-3 gap-6 items-end mb-14">
 
-      <!-- 3e -->
-      <div class="order-3">
-        <div class="bg-white/10 rounded-xl p-4 h-36 flex flex-col justify-end">
-          <div class="text-xl">🥉</div>
-          <div id="p3-name" class="font-bold mt-1">—</div>
-          <div id="p3-wager" class="text-sm text-gray-300">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 📋 TOP 10 TABLE -->
-    <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-      <table class="w-full text-sm">
-        <thead class="bg-white/10 text-gray-300">
-          <tr>
-            <th class="px-4 py-3 text-left">#</th>
-            <th class="px-4 py-3 text-left">Joueur</th>
-            <th class="px-4 py-3 text-right">Wager</th>
-          </tr>
-        </thead>
-        <tbody id="tbody" class="divide-y divide-white/10"></tbody>
-      </table>
-    </div>
-
-    <!-- Footer -->
-    <div class="text-center text-xs text-gray-400 mt-4">
-      Dernière mise à jour :
-      <span id="updatedAt" class="font-semibold">—</span>
-      <span class="mx-2">•</span>
-      Rafraîchissement dans
-      <span id="countdown" class="font-semibold">60</span>s
-    </div>
-
+<!-- 🥈 -->
+<div class="fade-up">
+  <div class="h-[180px] rounded-xl bg-white/10 p-4 flex flex-col justify-end text-center">
+    <div class="text-xl">🥈</div>
+    <div id="p2-name" class="font-bold mt-1">—</div>
+    <div id="p2-wager" class="text-sm text-gray-300">—</div>
+    <div class="text-xs text-gray-400 mt-1">Challenger</div>
   </div>
+</div>
+
+<!-- 🥇 -->
+<div class="fade-up">
+  <div class="h-[230px] rounded-xl p-4 flex flex-col justify-end text-center
+  bg-yellow-500/20 border border-yellow-400 glow-champion">
+    <div class="text-2xl">🥇</div>
+    <div id="p1-name" class="font-extrabold text-lg mt-1">—</div>
+    <div id="p1-wager" class="text-sm text-yellow-200">—</div>
+    <div class="text-xs text-yellow-300 mt-1">Champion</div>
+  </div>
+</div>
+
+<!-- 🥉 -->
+<div class="fade-up">
+  <div class="h-[160px] rounded-xl bg-white/10 p-4 flex flex-col justify-end text-center">
+    <div class="text-xl">🥉</div>
+    <div id="p3-name" class="font-bold mt-1">—</div>
+    <div id="p3-wager" class="text-sm text-gray-300">—</div>
+    <div class="text-xs text-gray-400 mt-1">Contender</div>
+  </div>
+</div>
+
+</div>
+
+<!-- TABLE -->
+<div class="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+<table class="w-full text-sm">
+<thead class="bg-white/10 text-gray-300">
+<tr>
+  <th class="px-4 py-3">#</th>
+  <th class="px-4 py-3 text-left">Joueur</th>
+  <th class="px-4 py-3 text-right">Wager</th>
+</tr>
+</thead>
+<tbody id="tbody" class="divide-y divide-white/10"></tbody>
+</table>
+</div>
+
+<!-- FOOTER -->
+<div class="text-center text-xs text-gray-400 mt-4">
+  Dernière mise à jour :
+  <span id="updatedAt" class="font-semibold">—</span>
+  • Rafraîchissement dans
+  <span id="countdown" class="font-semibold">60</span>s
+</div>
+
+<div id="alert" class="text-center text-yellow-300 text-sm mt-3 hidden">
+🔥 Nouveau leader !
+</div>
+
+</div>
 
 <script>
-  const tbody = document.getElementById("tbody");
-  const updatedAt = document.getElementById("updatedAt");
-  const countdownEl = document.getElementById("countdown");
+const START_AT="2025-12-07", END_AT="2026-01-06";
+const tbody=document.getElementById("tbody");
+const updatedAt=document.getElementById("updatedAt");
+const countdown=document.getElementById("countdown");
+const alertBox=document.getElementById("alert");
 
-  const p1n = document.getElementById("p1-name");
-  const p1w = document.getElementById("p1-wager");
-  const p2n = document.getElementById("p2-name");
-  const p2w = document.getElementById("p2-wager");
-  const p3n = document.getElementById("p3-name");
-  const p3w = document.getElementById("p3-wager");
+const p1n=p1-name, p1w=p1-wager;
+const p2n=p2-name, p2w=p2-wager;
+const p3n=p3-name, p3w=p3-wager;
 
-  // 📅 PÉRIODE FIXE
-  const START_AT = "2025-12-07";
-  const END_AT   = "2026-01-06";
+let lastLeader=null;
 
-  function format(n) {
-    return Number(n).toLocaleString("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  }
+function f(n){return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2});}
 
-  async function loadTop10() {
-    try {
-      const res = await fetch(
-        `/api/rainbet/public-top?start_at=${START_AT}&end_at=${END_AT}`
-      );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur API");
+async function load(){
+  const res=await fetch(`/api/rainbet/public-top?start_at=${START_AT}&end_at=${END_AT}`);
+  const data=await res.json();
+  if(!res.ok) return;
 
-      const rows = data.top10;
+  const rows=data.top10;
+  tbody.innerHTML="";
 
-      // 🏆 Podium
-      if (rows[0]) {
-        p1n.textContent = rows[0].username;
-        p1w.textContent = format(rows[0].wagered_amount);
-      }
-      if (rows[1]) {
-        p2n.textContent = rows[1].username;
-        p2w.textContent = format(rows[1].wagered_amount);
-      }
-      if (rows[2]) {
-        p3n.textContent = rows[2].username;
-        p3w.textContent = format(rows[2].wagered_amount);
-      }
-
-      // 📋 Table Top 10
-      tbody.innerHTML = "";
-      rows.forEach((r) => {
-        const tr = document.createElement("tr");
-        tr.className = "hover:bg-white/5 transition";
-        tr.innerHTML = `
-          <td class="px-4 py-3 font-bold">${r.rank}</td>
-          <td class="px-4 py-3 font-semibold">${r.username}</td>
-          <td class="px-4 py-3 text-right tabular-nums">
-            ${format(r.wagered_amount)}
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      updatedAt.textContent = data.updated_at || "—";
-    } catch (err) {
-      console.error(err);
+  if(rows[0]?.username!==lastLeader){
+    if(lastLeader) {
+      alertBox.classList.remove("hidden");
+      setTimeout(()=>alertBox.classList.add("hidden"),2000);
     }
+    lastLeader=rows[0]?.username;
   }
 
-  // 🔁 REFRESH AUTO
-  let seconds = 60;
-  countdownEl.textContent = seconds;
+  [ [p1n,p1w,0],[p2n,p2w,1],[p3n,p3w,2] ].forEach(([n,w,i])=>{
+    if(rows[i]){n.textContent=rows[i].username;w.textContent=f(rows[i].wagered_amount);}
+  });
 
-  setInterval(() => {
-    seconds--;
-    if (seconds <= 0) seconds = 60;
-    countdownEl.textContent = seconds;
-  }, 1000);
+  rows.forEach(r=>{
+    const medal=r.rank==1?"🥇":r.rank==2?"🥈":r.rank==3?"🥉":r.rank;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td class="px-4 py-3 font-bold">${medal}</td>
+      <td class="px-4 py-3 font-semibold">${r.username}</td>
+      <td class="px-4 py-3 text-right tabular-nums">${f(r.wagered_amount)}</td>`;
+    tbody.appendChild(tr);
+  });
 
-  loadTop10();
-  setInterval(() => {
-    seconds = 60;
-    loadTop10();
-  }, 60 * 1000);
+  updatedAt.textContent=data.updated_at||"—";
+}
+
+let sec=60;
+setInterval(()=>{sec--;if(sec<=0)sec=60;countdown.textContent=sec;},1000);
+load(); setInterval(()=>{sec=60;load();},60000);
 </script>
 </body>
 </html>
