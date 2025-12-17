@@ -3,23 +3,53 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🏆 Rainbet — Top 10 Wager</title>
+  <title>🏆 Rainbet — Wager Race Top 10</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="min-h-screen bg-gradient-to-br from-[#0f172a] via-[#020617] to-black text-white p-6">
-  <div class="max-w-3xl mx-auto">
+  <div class="max-w-4xl mx-auto">
 
     <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-4xl font-extrabold tracking-tight">🏆 TOP 10 WAGER</h1>
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-extrabold tracking-tight">🏆 PODIUM & TOP 10</h1>
       <p class="text-gray-400 mt-1">Classement officiel Rainbet</p>
       <p class="text-gray-500 mt-1 text-sm">
         📅 Période : 07 décembre 2025 → 06 janvier 2026
       </p>
     </div>
 
-    <!-- Card -->
+    <!-- 🏆 PODIUM -->
+    <div id="podium" class="grid grid-cols-3 gap-4 items-end mb-12 text-center">
+      <!-- 2e -->
+      <div class="order-1">
+        <div class="bg-white/10 rounded-xl p-4 h-40 flex flex-col justify-end">
+          <div class="text-xl">🥈</div>
+          <div id="p2-name" class="font-bold mt-1">—</div>
+          <div id="p2-wager" class="text-sm text-gray-300">—</div>
+        </div>
+      </div>
+
+      <!-- 1er -->
+      <div class="order-2">
+        <div class="bg-yellow-500/20 border border-yellow-400 rounded-xl p-4 h-52 flex flex-col justify-end shadow-lg shadow-yellow-500/20 animate-pulse">
+          <div class="text-2xl">🥇</div>
+          <div id="p1-name" class="font-extrabold text-lg mt-1">—</div>
+          <div id="p1-wager" class="text-sm text-yellow-200">—</div>
+        </div>
+      </div>
+
+      <!-- 3e -->
+      <div class="order-3">
+        <div class="bg-white/10 rounded-xl p-4 h-36 flex flex-col justify-end">
+          <div class="text-xl">🥉</div>
+          <div id="p3-name" class="font-bold mt-1">—</div>
+          <div id="p3-wager" class="text-sm text-gray-300">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 TOP 10 TABLE -->
     <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
       <table class="w-full text-sm">
         <thead class="bg-white/10 text-gray-300">
@@ -49,6 +79,13 @@
   const updatedAt = document.getElementById("updatedAt");
   const countdownEl = document.getElementById("countdown");
 
+  const p1n = document.getElementById("p1-name");
+  const p1w = document.getElementById("p1-wager");
+  const p2n = document.getElementById("p2-name");
+  const p2w = document.getElementById("p2-wager");
+  const p3n = document.getElementById("p3-name");
+  const p3w = document.getElementById("p3-wager");
+
   // 📅 PÉRIODE FIXE
   const START_AT = "2025-12-07";
   const END_AT   = "2026-01-06";
@@ -66,21 +103,31 @@
         `/api/rainbet/public-top?start_at=${START_AT}&end_at=${END_AT}`
       );
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || "Erreur API");
 
+      const rows = data.top10;
+
+      // 🏆 Podium
+      if (rows[0]) {
+        p1n.textContent = rows[0].username;
+        p1w.textContent = format(rows[0].wagered_amount);
+      }
+      if (rows[1]) {
+        p2n.textContent = rows[1].username;
+        p2w.textContent = format(rows[1].wagered_amount);
+      }
+      if (rows[2]) {
+        p3n.textContent = rows[2].username;
+        p3w.textContent = format(rows[2].wagered_amount);
+      }
+
+      // 📋 Table Top 10
       tbody.innerHTML = "";
-
-      data.top10.forEach((r) => {
-        const medal =
-          r.rank === 1 ? "🥇" :
-          r.rank === 2 ? "🥈" :
-          r.rank === 3 ? "🥉" : r.rank;
-
+      rows.forEach((r) => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-white/5 transition";
         tr.innerHTML = `
-          <td class="px-4 py-3 font-bold">${medal}</td>
+          <td class="px-4 py-3 font-bold">${r.rank}</td>
           <td class="px-4 py-3 font-semibold">${r.username}</td>
           <td class="px-4 py-3 text-right tabular-nums">
             ${format(r.wagered_amount)}
@@ -91,13 +138,7 @@
 
       updatedAt.textContent = data.updated_at || "—";
     } catch (err) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="3" class="px-4 py-6 text-center text-red-400">
-            ❌ Erreur de chargement
-          </td>
-        </tr>
-      `;
+      console.error(err);
     }
   }
 
