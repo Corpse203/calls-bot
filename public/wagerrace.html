@@ -112,7 +112,12 @@ const p3n=document.getElementById("p3-name");
 const p3w=document.getElementById("p3-wager");
 
 function f(n){
-  return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2});
+  return Number(n).toLocaleString("fr-FR",{
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 }
 
 async function load(){
